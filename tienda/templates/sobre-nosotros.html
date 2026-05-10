@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sobre Nosotros - Arkadya Cobre</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f0eb; color: #3e2a21; }
+        header { background: #8b5a2b; color: white; padding: 20px; text-align: center; }
+        .container { max-width: 1000px; margin: 40px auto; padding: 0 20px; }
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .card h2 {
+            color: #8b5a2b;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e8d9cc;
+            padding-bottom: 10px;
+        }
+        .card h3 {
+            color: #5c3a1e;
+            margin: 20px 0 10px;
+        }
+        .card p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .card ul {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+        .card li {
+            margin-bottom: 8px;
+        }
+        .valores {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .valor-item {
+            flex: 1;
+            min-width: 180px;
+            background: #faf8f6;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .valor-item h4 {
+            color: #8b5a2b;
+            margin-bottom: 8px;
+            font-size: 1.2em;
+        }
+        .btn-volver {
+            display: inline-block;
+            background: #8b5a2b;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            margin-top: 20px;
+        }
+        .btn-volver:hover { background: #6b4220; }
+        footer {
+            background: #3e2a21;
+            color: #d4b896;
+            text-align: center;
+            padding: 25px;
+            margin-top: 50px;
+        }
+        footer a {
+            color: #d4b896;
+            text-decoration: none;
+            margin: 0 8px;
+        }
+        @media (max-width: 768px) {
+            .card { padding: 20px; }
+            .valores { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 20px;">
+            <img src="/media/logo/arkadya.logo.jpg" alt="Arkadya Cobre Logo" style="height: 80px; width: auto; border-radius: 10px;">
+            <div>
+                <h1 style="margin: 0;">Arkadya Cobre</h1>
+                <p style="margin: 5px 0 0 0;">Artesanía en cobre con alma paraguaya</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h2>🏺 Nuestra historia</h2>
+            <p>Arkadya Cobre nació en Asunción, Paraguay, el 14 de febrero de 2021, en el Día de los Enamorados ❤️, como un gesto de amor por el arte y por los demás. En plena pandemia y ante la crisis de la chikunguya, quisimos ofrecer alivio a quienes sufrían dolores y afecciones, descubriendo que el cobre podía ser un aliado natural para su bienestar. Con la visión de rescatar la tradición artesanal de este noble metal y llevarla a los hogares de todo el país y el mundo, lo que comenzó como un pequeño taller familiar, se ha convertido en un emprendimiento que valora la calidad, la durabilidad y la belleza única del cobre.</p>
+
+            <h2>✨ Nuestros valores</h2>
+            <div class="valores">
+                <div class="valor-item">
+                    <h4>🫶 Calidad artesanal</h4>
+                    <p>Cada pieza es trabajada a mano, asegurando terminaciones únicas y resistencia.</p>
+                </div>
+                <div class="valor-item">
+                    <h4>🌿 Sostenibilidad</h4>
+                    <p>El cobre es 100% reciclable. Promovemos un consumo responsable y duradero.</p>
+                </div>
+                <div class="valor-item">
+                    <h4>🇵🇾 Hecho en Paraguay</h4>
+                    <p>Orgullosamente elaborado en Asunción, apoyando la economía local y la cultura.</p>
+                </div>
+                <div class="valor-item">
+                    <h4>❤️ Pasión por el detalle</h4>
+                    <p>Prestamos atención a cada acabado para que disfrutes de piezas que perduran.</p>
+                </div>
+            </div>
+
+            <h2>🧑‍🎨 El taller</h2>
+            <p>Nuestro taller está ubicado en Asunción, donde cada pieza de cobre es moldeada, pulida y embellecida por manos expertas. Trabajamos con cobre de alta pureza, seleccionando los mejores insumos para garantizar la satisfacción de nuestros clientes.</p>
+            <p>Creemos en el valor de lo hecho a mano, en la conexión entre el artesano y el usuario final. Por eso, invitamos a conocer nuestros productos, cada uno con su propia historia y carácter.</p>
+
+            <h2>📞 Contacto</h2>
+            <p>Si deseas más información, consultar sobre pedidos personalizados o visitar nuestro taller (con cita previa), escríbenos por WhatsApp al <strong>+595 991519823</strong> o envíanos un correo a <strong>arkadya.cobre.py@gmail.com</strong>. También puedes seguirnos en Instagram <strong>@arkadyacobre</strong>.</p>
+
+            <div style="text-align: center;">
+                <a href="/" class="btn-volver">← Volver al catálogo</a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>📍 Asunción, Paraguay | 📦 Envíos a todo el país</p>
+        <p>
+            <a href="/">Inicio</a> |
+            <a href="/cuidados/">Cuidados del Cobre</a> |
+            <a href="/beneficios/">Beneficios</a> |
+            <a href="/privacidad/">Privacidad</a> |
+            <a href="/aviso-legal/">Aviso Legal</a> |
+            <a href="/sobre-nosotros/">Sobre Nosotros</a>
+        </p>
+    </footer>
+</body>
+</html>

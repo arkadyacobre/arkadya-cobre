@@ -1,0 +1,87 @@
+{% extends "blog_base.html" %}
+
+{% block title %}{{ articulo.titulo }} - Arkadya Cobre{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <div class="card">
+        <h1>{{ articulo.titulo }}</h1>
+        <small>{{ articulo.fecha_publicacion|date:"d/m/Y" }}</small>
+        
+        {% if articulo.imagen %}
+            <img src="{{ articulo.imagen.url }}" alt="{{ articulo.titulo }}" 
+                 style="max-width: 100%; max-height: 400px; width: auto; height: auto; margin: 20px 0; border-radius: 8px; object-fit: contain;">
+        {% endif %}
+        
+        <div class="articulo-contenido">
+            {{ articulo.contenido|safe }}
+        </div>
+        
+        <a href="/blog/" class="btn-volver">← Volver al blog</a>
+    </div>
+</div>
+
+<!-- ========== LIGHTBOX COPIADO DIRECTAMENTE ========== -->
+<style>
+    .lb-lightbox {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.9);
+        z-index: 9999;
+        text-align: center;
+        padding-top: 5%;
+    }
+    .lb-lightbox img {
+        max-width: 90%;
+        max-height: 90%;
+        border-radius: 8px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+    .lb-lightbox span {
+        position: absolute;
+        top: 20px;
+        right: 30px;
+        color: white;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+</style>
+<div id="lb" class="lb-lightbox">
+    <span>&times;</span>
+    <img id="lb-img" src="">
+</div>
+
+<script>
+    (function() {
+        const lb = document.getElementById('lb');
+        const lbImg = document.getElementById('lb-img');
+        const closeBtn = lb.querySelector('span');
+        
+        function cerrar() {
+            lb.style.display = 'none';
+        }
+        
+        function abrir(img) {
+            lbImg.src = img.src;
+            lb.style.display = 'block';
+        }
+        
+        // Seleccionar imágenes dentro del contenido del artículo
+        const imagenes = document.querySelectorAll('.card img');
+        
+        
+        closeBtn.addEventListener('click', cerrar);
+        lb.addEventListener('click', function(e) {
+            if (e.target === lb) cerrar();
+        });
+    })();
+</script>
+<!-- ========== FIN LIGHTBOX ========== -->
+
+{% endblock %}

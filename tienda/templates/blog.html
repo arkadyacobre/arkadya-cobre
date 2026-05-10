@@ -1,0 +1,30 @@
+{% extends "blog_base.html" %}
+
+{% block title %}Blog - Arkadya Cobre{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <h1>📝 Blog Arkadya Cobre</h1>
+        
+        {% for articulo in articulos %}
+            <div class="articulo-item" style="margin-bottom: 40px;">
+                <h2><a href="{{ articulo.get_absolute_url }}">{{ articulo.titulo }}</a></h2>
+                <small>{{ articulo.fecha_publicacion|date:"d/m/Y" }}</small>
+                <p>{{ articulo.contenido|truncatewords:40|safe }}</p>
+                {% if articulo.imagen %}
+                    <img src="{{ articulo.imagen.url }}" style="max-width: 100%; max-height: 300px; width: auto; height: auto; border-radius: 8px; margin: 15px 0; object-fit: contain;">
+                {% endif %}
+                <a href="{{ articulo.get_absolute_url }}" class="btn-volver">Leer más</a>
+                <hr>
+            </div>
+        {% empty %}
+            <p>No hay artículos aún. ¡Pronto publicaremos contenido!</p>
+        {% endfor %}
+        
+        <div style="margin-top: 30px; text-align: center;">
+            <a href="/" class="btn-volver">← Volver al catálogo</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

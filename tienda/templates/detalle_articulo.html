@@ -1,0 +1,19 @@
+{% extends "blog_base.html" %}
+
+{% block title %}{{ articulo.titulo }} - Arkadya Cobre{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <h1>{{ articulo.titulo }}</h1>
+        <small>{{ articulo.fecha_publicacion|date:"d/m/Y" }}</small>
+        <div class="contenido">{{ articulo.contenido|safe }}</div>
+        
+        <div style="margin-top: 30px;">
+            <a href="/blog/" class="btn-volver">← Volver al blog</a>
+            &nbsp;&nbsp;
+            <a href="/" class="btn-volver">← Volver al catálogo</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

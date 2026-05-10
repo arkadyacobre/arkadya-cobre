@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Finalizar Compra - Arkadya Cobre</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f0eb; color: #3e2a21; }
+        header { background: #8b5a2b; color: white; padding: 20px; text-align: center; }
+        .container { max-width: 500px; margin: 40px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h2 { color: #8b5a2b; margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        button { background: #25D366; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-size: 1.2em; cursor: pointer; font-weight: bold; }
+        button:hover { background: #128C7E; }
+        .btn-volver { background: #8b5a2b; margin-top: 10px; }
+        .btn-volver:hover { background: #6b4220; }
+        footer { background: #3e2a21; color: #d4b896; text-align: center; padding: 25px; margin-top: 50px; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🏺 Arkadya Cobre</h1>
+        <p>Completa tus datos para finalizar la compra</p>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h2>📝 Datos de contacto</h2>
+            <form method="POST">
+                {% csrf_token %}
+                <label>👤 Nombre completo:</label>
+                <input type="text" name="nombre" required placeholder="Ej: Juan Pérez">
+                
+                <label>📱 Teléfono:</label>
+                <input type="tel" name="telefono" required placeholder="Ej: 0986123456">
+                
+                <label>📍 Ciudad / Localidad:</label>
+                <input type="text" name="localidad" required placeholder="Ej: Asunción">
+                
+                <label>💳 Método de pago:</label>
+                <select name="metodo_pago">
+                    <option value="transferencia">Transferencia bancaria (Ueno)</option>
+                    <option value="contra_entrega">Pago contra entrega</option>
+                </select>
+                
+                <label>🚚 Método de entrega:</label>
+                <select name="metodo_entrega">
+                    <option value="delivery">Delivery (Asigar)</option>
+                    <option value="retiro">Retiro en persona</option>
+                </select>
+                
+                <button type="submit">✅ Confirmar pedido</button>
+                <a href="/ver-carrito/" class="btn-volver" style="display: block; text-align: center; text-decoration: none;">← Volver al carrito</a>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>📍 Asunción, Paraguay | 📦 Envíos a todo el país</p>
+    </footer>
+</body>
+</html>

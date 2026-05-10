@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>Arkadya Cobre - Catálogo de Productos</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f0eb; color: #3e2a21; }
+        
+        /* Header y navegación */
+        header { background: #8b5a2b; color: white; padding: 20px; }
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .header-logo img {
+            height: 80px;
+            width: auto;
+            border-radius: 10px;
+        }
+        .cart-link {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            text-decoration: none;
+            color: #8b5a2b;
+            font-weight: bold;
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+        .cart-link:hover {
+            transform: scale(1.05);
+            background: #f0f0f0;
+        }
+        
+        /* Selector de monedas */
+        .moneda-selector { 
+            background: #e8d9cc; 
+            padding: 15px; 
+            text-align: center; 
+            border-bottom: 2px solid #c4a27a;
+        }
+        .moneda-selector a { 
+            color: #5c3a1e; 
+            text-decoration: none; 
+            margin: 0 15px; 
+            font-weight: bold; 
+            padding: 5px 10px; 
+            border-radius: 5px;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+        .moneda-selector a:hover { background: #c4a27a; color: white; }
+        .moneda-selector a.activo { background: #8b5a2b; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        
+        /* Grid de productos */
+        .container { display: flex; flex-wrap: wrap; justify-content: center; padding: 30px; gap: 25px; max-width: 1400px; margin: 0 auto; }
+        .producto { 
+            background: white; 
+            width: 280px; 
+            border-radius: 15px; 
+            overflow: hidden; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+            transition: transform 0.3s;
+        }
+        .producto:hover { transform: translateY(-5px); }
+        
+        /* Imágenes de productos */
+        /* Contenedor de imagen fijo para uniformar tarjetas */
+        .producto-imagen {
+        background: #d9c5b3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px 10px 0 0;
+        overflow: hidden;
+        cursor: pointer;
+        height: 220px;          /* altura fija para todas las tarjetas */
+        }
+
+        /* Imágenes normales (horizontales) - ocupan todo el contenedor */
+        .producto-imagen img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;      /* rellena sin bordes vacíos */
+        }
+
+        /* Productos verticales (botellas, jarras) */
+        .producto-vertical img {
+        width: auto;
+        height: 100%;
+        object-fit: contain;    /* muestra la imagen completa sin recortes */
+        }
+
+        /* Asegura que el contenido inferior sea uniforme */
+        .producto {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        }
+        .producto-info {
+        flex-grow: 1;
+        }
+        
+        /* Información del producto */
+        .producto-info { padding: 15px; }
+        .producto-info h3 { color: #8b5a2b; margin-bottom: 10px; font-size: 1.1em; }
+        .producto-info p { color: #666; font-size: 0.85em; margin-bottom: 10px; line-height: 1.4; }
+        .precio { font-size: 1.3em; color: #2d6a4f; font-weight: bold; margin: 10px 0; }
+        
+        /* Botones */
+        .btn-agregar {
+            background: #8b5a2b;
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-top: 5px;
+            transition: background 0.2s;
+        }
+        .btn-agregar:hover { background: #6b4220; }
+        
+        /* Footer */
+        footer { background: #3e2a21; color: #d4b896; text-align: center; padding: 25px; margin-top: 30px; }
+        footer a { color: #d4b896; text-decoration: none; margin: 0 8px; display: inline-flex; align-items: center; gap: 4px; }
+        footer a:hover { text-decoration: underline; }
+        
+        /* Botón flotante de WhatsApp */
+        .whatsapp-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #25D366;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        .whatsapp-btn:hover { background: #128C7E; }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-container { flex-direction: column; text-align: center; }
+            .header-logo { flex-direction: column; }
+            .moneda-selector a { margin: 0 8px; font-size: 0.9em; }
+            .container { padding: 15px; gap: 15px; }
+            .producto { width: 260px; }
+        }
+
+        .btn-agotado {
+        background: #ccc !important;
+        color: #666 !important;
+        cursor: not-allowed !important;
+        pointer-events: none;
+        opacity: 0.7;
+        }
+
+        .btn-stock-bajo {
+        background: #f39c12 !important;  /* naranja */
+        color: white !important;
+        }
+
+        .btn-stock-bajo:hover {
+        background: #e67e22 !important;
+        }
+
+        .moneda-selector a {
+            color: #5c3a1e;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .moneda-selector a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="header-logo">
+                <img src="/media/logo/arkadya.logo.jpg" alt="Arkadya Cobre Logo">
+                <div>
+                    <h1 style="margin: 0;">Arkadya Cobre</h1>
+                    <p style="margin: 5px 0 0 0;">Artesanía en cobre de alta calidad - Asunción, Paraguay</p>
+                </div>
+            </div>
+            <div>
+                <a href="/ver-carrito/" class="cart-link">
+                    🛒 Carrito (<span id="carrito-count">0</span>)
+                </a>
+            </div>
+        </div>
+    </header>
+
+<div class="moneda-selector">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 15px;">
+        <!-- IZQUIERDA: menú informativo -->
+        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+            <a href="/sobre-nosotros/">🏺 Sobre Nosotros</a>
+            <a href="/cuidados/">🧼 Cuidados del Cobre</a>
+            <a href="/beneficios/">✨ Beneficios del Cobre</a>
+            <a href="/blog/">📝 Blog</a>   <!-- nuevo enlace al blog -->
+        </div>
+
+        <!-- CENTRO: selector de categorías -->
+        <div class="filtros-categoria" style="display: flex; align-items: center; gap: 8px;">
+            <strong>📂 Categoría:</strong>
+            <select id="selector-categoria" style="padding: 6px 10px; border-radius: 8px; border: 1px solid #c4a27a; background: white;">
+                <option value="">Todas las categorías</option>
+                {% for key, nombre in categorias %}
+                <option value="{{ key }}" {% if categoria_actual == key %}selected{% endif %}>{{ nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- DERECHA: selector de moneda -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <strong>💱 Moneda:</strong>
+            <select id="selector-moneda" style="padding: 6px 10px; border-radius: 8px; border: 1px solid #c4a27a; background: white;">
+                <option value="PYG" {% if moneda_actual == 'PYG' %}selected{% endif %}>🇵🇾 Guaraníes</option>
+                <option value="USD" {% if moneda_actual == 'USD' %}selected{% endif %}>🇺🇸 Dólares</option>
+                <option value="EUR" {% if moneda_actual == 'EUR' %}selected{% endif %}>🇪🇺 Euros</option>
+                <option value="ARS" {% if moneda_actual == 'ARS' %}selected{% endif %}>🇦🇷 Pesos Argentinos</option>
+                <option value="BRL" {% if moneda_actual == 'BRL' %}selected{% endif %}>🇧🇷 Real Brasileño</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+    <div class="container">
+        {% for item in catalogo %}
+        <div class="producto">
+            <div class="producto-imagen {% if item.producto.es_vertical %}producto-vertical{% endif %}">
+                {% if item.producto.foto %}
+                    <img src="{{ item.producto.foto.url }}" alt="{{ item.producto.nombre }}">
+                {% else %}
+                    🏺
+                {% endif %}
+            </div>
+            <div class="producto-info">
+                <h3>{{ item.producto.nombre }}</h3>
+                <p>{{ item.producto.descripcion|truncatechars:80 }}</p>
+                <p><strong>Categoría:</strong> {{ item.producto.get_categoria_display }}</p>
+                <div class="precio">{{ item.precio }}</div>
+                <button class="btn-agregar" 
+                        data-id="{{ item.producto.id }}" 
+                        data-nombre="{{ item.producto.nombre|escapejs }}" 
+                        data-precio="{{ item.precio_original }}">
+                    ➕ Agregar al carrito
+                </button>
+            </div>
+        </div>
+
+        {% empty %}
+        <p style="text-align:center; width:100%;">No hay productos cargados aún. Agregá productos desde el panel de administración.</p>
+        {% endfor %}
+    </div>
+
+    <footer>
+        <p>📍 Tienda online en Asunción - Paraguay | 📦 Envíos a todo el país</p>
+        <p>
+            <a href="mailto:arkadya.cobre.py@gmail.com">
+                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/gmail.svg" width="16" height="16" style="filter: brightness(0) saturate(100%) invert(27%) sepia(89%) saturate(2000%) hue-rotate(0deg) brightness(95%) contrast(95%); vertical-align: middle;"> arkadya.cobre.py@gmail.com
+            </a> |
+            <a href="https://wa.me/595991519823">
+                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/whatsapp.svg" width="16" height="16" style="filter: brightness(0) saturate(100%) invert(45%) sepia(78%) saturate(1234%) hue-rotate(85deg) brightness(95%) contrast(95%); vertical-align: middle;"> +595 991519823
+            </a> |
+            <a href="https://instagram.com/arkadyacobre">
+                <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/instagram.svg" width="16" height="16" style="filter: brightness(0) saturate(100%) invert(29%) sepia(84%) saturate(2000%) hue-rotate(320deg) brightness(95%) contrast(95%); vertical-align: middle;"> @arkadyacobre
+            </a>
+        </p>
+        <p>
+        <a href="/envios/">📦 Envíos</a> |
+        <a href="/pagos/">💳 Pagos</a> |
+        <a href="/politicas/">📋 Políticas</a> |
+        <a href="/aviso-legal/">⚖️ Aviso Legal</a> |
+        <a href="/privacidad/">🔒 Privacidad</a>
+        </p>
+    </footer>
+
+    <a href="https://wa.me/595991519823" class="whatsapp-btn" target="_blank">💬 WhatsApp</a>
+
+    <!-- Google Translate -->
+    <div id="google_translate_element" style="text-align: center; margin: 10px 0;"></div>
+<script>
+    function googleTranslateElementInit() {
+        new google.translate.TranslateElement({
+            pageLanguage: 'es',
+            includedLanguages: 'en,pt,es',
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+        }, 'google_translate_element');
+    }
+</script>
+<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+<script>
+    // ---------- CSRF TOKEN ----------
+    function getCsrfToken() {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            let cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.startsWith('csrftoken=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(10));
+                    break;
+                }
+            }
+        }
+        if (cookieValue) return cookieValue;
+        let meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? meta.getAttribute('content') : '';
+    }
+
+    const csrftoken = getCsrfToken();
+
+    async function actualizarContadorCarrito() {
+        try {
+            let response = await fetch('/obtener-carrito/', { credentials: 'same-origin' });
+            let data = await response.json();
+            let contadorSpan = document.getElementById('carrito-count');
+            if (contadorSpan) contadorSpan.innerText = data.total_items || 0;
+        } catch(e) {
+            console.error('Error actualizando carrito:', e);
+        }
+    }
+
+    async function agregarAlCarrito(productoId, nombre, precio) {
+        let monedaElem = document.querySelector('.moneda-selector a.activo');
+        let moneda = monedaElem ? monedaElem.innerText.trim() : 'Guaraníes';
+        try {
+            let response = await fetch('/agregar-al-carrito/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    producto_id: productoId,
+                    nombre: nombre,
+                    precio: parseFloat(precio),
+                    cantidad: 1,
+                    moneda: moneda
+                })
+            });
+            let data = await response.json();
+            if (data.success) {
+                await actualizarContadorCarrito();
+                alert('✅ ' + nombre + ' agregado al carrito');
+            } else {
+                alert('❌ Error: ' + (data.error || 'No se pudo agregar el producto.'));
+            }
+        } catch(e) {
+            console.error('Error en fetch:', e);
+            alert('❌ Error de conexión: ' + e.message);
+        }
+    }
+
+    // ---------- LIGHTBOX MEJORADO ----------
+    function initLightbox() {
+        // Crear lightbox si no existe
+        let lightbox = document.getElementById('lightbox');
+        if (!lightbox) {
+            lightbox = document.createElement('div');
+            lightbox.id = 'lightbox';
+            lightbox.style.display = 'none';
+            lightbox.style.position = 'fixed';
+            lightbox.style.top = '0';
+            lightbox.style.left = '0';
+            lightbox.style.width = '100%';
+            lightbox.style.height = '100%';
+            lightbox.style.backgroundColor = 'rgba(0,0,0,0.9)';
+            lightbox.style.zIndex = '9999';
+            lightbox.style.alignItems = 'center';
+            lightbox.style.justifyContent = 'center';
+            lightbox.style.cursor = 'pointer';
+            lightbox.innerHTML = `
+                <img id="lightbox-img" style="max-width: 90%; max-height: 90%; object-fit: contain;">
+                <span id="lightbox-close" style="position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; font-weight: bold; cursor: pointer;">&times;</span>
+            `;
+            document.body.appendChild(lightbox);
+
+            // Evento para cerrar
+            lightbox.addEventListener('click', function(e) {
+                if (e.target === lightbox || e.target.id === 'lightbox-close') {
+                    lightbox.style.display = 'none';
+                }
+            });
+        }
+        return lightbox;
+    }
+
+    // Inicializar todo cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', function() {
+        // Carrito: botones agregar
+        document.querySelectorAll('.btn-agregar').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                agregarAlCarrito(this.dataset.id, this.dataset.nombre, this.dataset.precio);
+            });
+        });
+        actualizarContadorCarrito();
+
+        // Selector de moneda
+        const monedaSelect = document.getElementById('selector-moneda');
+        if (monedaSelect) {
+            monedaSelect.addEventListener('change', function() {
+                const nuevaMoneda = this.value;
+                const url = new URL(window.location.href);
+                url.searchParams.set('moneda', nuevaMoneda);
+                const cat = document.getElementById('selector-categoria') ? document.getElementById('selector-categoria').value : '';
+                if (cat) url.searchParams.set('cat', cat);
+                window.location.href = url.toString();
+            });
+        }
+
+        // Selector de categoría
+        const catSelect = document.getElementById('selector-categoria');
+        if (catSelect) {
+            catSelect.addEventListener('change', function() {
+                const cat = this.value;
+                const url = new URL(window.location.href);
+                if (cat) url.searchParams.set('cat', cat);
+                else url.searchParams.delete('cat');
+                window.location.href = url.toString();
+            });
+        }
+
+        // Lightbox: asignar clic a las imágenes
+        const lightbox = initLightbox();
+        const lightboxImg = document.getElementById('lightbox-img');
+        const imagenes = document.querySelectorAll('.producto-imagen img');
+        imagenes.forEach(img => {
+            img.style.cursor = 'pointer';
+            img.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (lightboxImg) lightboxImg.src = this.src;
+                lightbox.style.display = 'flex';
+            });
+        });
+    });
+
+</script>
+
+
+</body>
+</html>

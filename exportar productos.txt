@@ -1,0 +1,98 @@
+Sí, hay una forma muy sencilla de mover los datos de productos de tu PC a la web. Django tiene comandos integrados que te permiten exportar e importar datos en formato JSON. Es como hacer una "copia de seguridad" de los productos de tu PC y "restaurarla" en la web.
+
+📦 El método oficial de Django: dumpdata y loaddata
+Django tiene dos comandos que hacen exactamente lo que necesitas:
+
+Comando	Qué hace
+python manage.py dumpdata	Exporta datos de tu base de datos a un archivo JSON
+python manage.py loaddata	Importa datos desde un archivo JSON a la base de datos
+Estos comandos son la herramienta estándar en Django para mover datos entre entornos .
+
+🚀 Paso a paso para migrar tus productos
+Paso 1: En tu PC (exportar los datos)
+Activá tu entorno virtual en tu PC local:
+
+cmd
+cd C:\Users\Rik\arkadya-cobre
+venv\Scripts\activate
+Exportá SOLO tus productos (no toda la base de datos):
+
+cmd
+python manage.py dumpdata productos.Producto --indent 2 > productos.json
+Exportá también los precios (si los tenés cargados):
+
+cmd
+python manage.py dumpdata productos.Precio --indent 2 > precios.json
+Exportá las tasas de cambio (opcional, si las queres pasar):
+
+cmd
+python manage.py dumpdata productos.TasaCambio --indent 2 > tasas.json
+📁 ¿Qué hace cada comando?
+Comando	Exporta	Archivo generado
+dumpdata productos.Producto	Todos tus productos de cobre	productos.json
+dumpdata productos.Precio	Los precios en todas las monedas	precios.json
+dumpdata productos.TasaCambio	Las tasas USD, EUR, ARS	tasas.json
+El parámetro --indent 2 hace que el archivo JSON sea más legible .
+
+Paso 2: Subir los archivos JSON a PythonAnywhere
+Entrá a PythonAnywhere → pestaña "Files"
+
+Subí los archivos (productos.json, precios.json, tasas.json) a la carpeta:
+
+text
+/home/arkadyacobre/arkadya-cobre/
+Hacé clic en "Upload a file" y seleccioná cada JSON desde tu PC
+
+Paso 3: En PythonAnywhere (importar los datos)
+Abrí una consola Bash en PythonAnywhere (pestaña "Consoles" → "Bash")
+
+Activá tu entorno virtual:
+
+bash
+cd ~/arkadya-cobre
+source venv/bin/activate
+Importá los productos:
+
+bash
+python manage.py loaddata productos.json
+Importá los precios:
+
+bash
+python manage.py loaddata precios.json
+Importá las tasas de cambio (si las exportaste):
+
+bash
+python manage.py loaddata tasas.json
+Paso 4: Recargar la web
+Andá a la pestaña "Web" en PythonAnywhere
+
+Hacé clic en el botón verde "Reload"
+
+Verificá en https://arkadyacobre.pythonanywhere.com/ que tus productos aparezcan
+
+⚠️ ¡Precaución! Leé esto antes de importar
+Situación	Qué va a pasar	Recomendación
+La web ya tiene productos	loaddata va a intentar CREAR los productos de nuevo. Si tienen el mismo ID, puede dar error o duplicarse.	Hacé una copia de seguridad de la web ANTES de importar, o borrá los productos web manualmente desde el admin.
+Los IDs coinciden	Si en tu PC un producto tiene ID=1 y en la web también hay un producto con ID=1, Django puede rechazar la importación.	Es más seguro exportar desde PC primero y asegurarse de que la web esté vacía para ese modelo.
+Productos duplicados	Si la importación falla por IDs repetidos, podés borrar los productos web desde el admin y volver a intentar.	Siempre se puede limpiar desde el admin web.
+La opción más segura: Si aún no tenés productos cargados en la web (o son pocos), borralos desde el admin web antes de importar. Luego hacé la importación y todo quedará igual que en tu PC.
+
+🛠️ Alternativa: Exportar TODA la base de datos (más simple pero más riesgosa)
+Si querés mover absolutamente todo (productos, precios, tasas, clientes, ventas, etc.):
+
+cmd
+# En tu PC:
+python manage.py dumpdata --indent 2 > toda_la_base.json
+
+# En PythonAnywhere (después de subir el archivo):
+python manage.py loaddata toda_la_base.json
+⚠️ Advertencia: Esto va a reemplazar TODOS los datos de la web. Si ya tenés ventas registradas en la web, las vas a perder. Usalo solo si la web está vacía o recién empezando.
+
+📋 Resumen rápido
+Qué querés migrar	Comando en tu PC	Comando en PythonAnywhere
+Solo productos	python manage.py dumpdata productos.Producto --indent 2 > productos.json	python manage.py loaddata productos.json
+Productos + Precios	python manage.py dumpdata productos --indent 2 > productos_completos.json	python manage.py loaddata productos_completos.json
+Todo el proyecto	python manage.py dumpdata --indent 2 > todo.json	python manage.py loaddata todo.json
+
+
+

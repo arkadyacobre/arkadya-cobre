@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>Mi Carrito - Arkadya Cobre</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f0eb; color: #3e2a21; }
+        header { background: #8b5a2b; color: white; padding: 20px; text-align: center; }
+        .container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        .cart-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .cart-item:last-child { border-bottom: none; }
+        .item-info { flex: 2; }
+        .item-cantidad { display: flex; gap: 10px; align-items: center; }
+        .cantidad-btn {
+            background: #8b5a2b;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+        }
+        .cantidad-btn:hover { background: #6b4220; }
+        .remove-btn {
+            background: #e63946;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .remove-btn:hover { background: #c1121f; }
+        .total {
+            text-align: right;
+            font-size: 1.5em;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #8b5a2b;
+        }
+        .btn-comprar {
+            background: #25D366;
+            color: white;
+            border: none;
+            padding: 15px;
+            width: 100%;
+            border-radius: 10px;
+            font-size: 1.2em;
+            cursor: pointer;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .btn-comprar:hover { background: #128C7E; }
+        .btn-seguir {
+            background: #8b5a2b;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 8px;
+            display: inline-block;
+            margin-top: 20px;
+        }
+        .vacio {
+            text-align: center;
+            padding: 50px;
+        }
+
+        .btn-agotado {
+        background: #ccc !important;
+        color: #666 !important;
+        cursor: not-allowed !important;
+        pointer-events: none;
+        opacity: 0.7;
+        }
+
+        .btn-stock-bajo {
+        background: #f39c12 !important;  /* naranja */
+        color: white !important;
+        }
+
+        .btn-stock-bajo:hover {
+        background: #e67e22 !important;
+        }
+
+        footer {
+            background: #3e2a21;
+            color: #d4b896;
+            text-align: center;
+            padding: 25px;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🛒 Mi Carrito de Compras</h1>
+        <p>Arkadya Cobre - Productos de cobre artesanal</p>
+    </header>
+
+    <div class="container">
+        <div class="cart-card">
+            <h2>Tus productos</h2>
+            <div id="carrito-items">
+                <div class="vacio">🔄 Cargando...</div>
+            </div>
+            <div class="total">
+                <strong>Total: </strong> <span id="total-precio">₲ 0</span>
+            </div>
+            <button class="btn-comprar" id="finalizar-compra">💬 Finalizar compra por WhatsApp</button>
+            <div style="text-align: center; margin-top: 15px;">
+                <a href="/" class="btn-seguir">← Seguir comprando</a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>📍 Tienda online en Asunción - Paraguay | 📦 Envíos a todo el país</p>
+        <p>💰 Transferencia a Banco Ueno | 🚚 Pago contra entrega al delivery Asigar</p>
+    </footer>
+
+    <script>
+        // ---------- CSRF TOKEN ----------
+        function getCsrfToken() {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.startsWith('csrftoken=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(10));
+                        break;
+                    }
+                }
+            }
+            if (cookieValue) return cookieValue;
+            const metaCsrf = document.querySelector('meta[name="csrf-token"]');
+            if (metaCsrf) return metaCsrf.getAttribute('content');
+            return '';
+        }
+
+        const csrftoken = getCsrfToken();
+
+        async function cargarCarrito() {
+            try {
+                const response = await fetch('/obtener-carrito/', { credentials: 'same-origin' });
+                const data = await response.json();
+                mostrarCarrito(data);
+            } catch (error) {
+                console.error('Error al cargar carrito:', error);
+                document.getElementById('carrito-items').innerHTML = '<div class="vacio">❌ Error al cargar el carrito</div>';
+            }
+        }
+
+        async function verificarStock(productoId, cantidad, elementoItem) {
+            try {
+                const response = await fetch(`/api/producto/${productoId}/stock/`);
+                const data = await response.json();
+                // Eliminar alerta previa si existe
+                const alertaExistente = elementoItem.querySelector('.stock-alerta');
+                if (alertaExistente) alertaExistente.remove();
+
+                if (data.stock < cantidad) {
+                    const alerta = document.createElement('div');
+                    alerta.className = 'stock-alerta';
+                    alerta.style.color = '#e63946';
+                    alerta.style.fontSize = '0.8em';
+                    alerta.innerHTML = `⚠️ Solo quedan ${data.stock} unidades. No puedes comprar más de ${data.stock}.`;
+                    elementoItem.querySelector('.item-info').appendChild(alerta);
+                    return false;
+                } else if (data.stock < 5) {
+                    const alerta = document.createElement('div');
+                    alerta.className = 'stock-alerta';
+                    alerta.style.color = '#f39c12';
+                    alerta.style.fontSize = '0.8em';
+                    alerta.innerHTML = `⚠️ ¡Stock bajo! Solo quedan ${data.stock} unidades.`;
+                    elementoItem.querySelector('.item-info').appendChild(alerta);
+                }
+                return true;
+            } catch(e) {
+                console.error('Error al verificar stock', e);
+                return false;
+            }
+        }
+
+        function mostrarCarrito(data) {
+            const container = document.getElementById('carrito-items');
+            if (!data.items || data.items.length === 0) {
+                container.innerHTML = '<div class="vacio"><p>🛒 Tu carrito está vacío</p><a href="/" class="btn-seguir">Ver productos</a></div>';
+                document.getElementById('finalizar-compra').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('finalizar-compra').style.display = 'block';
+
+            // Construir HTML de los items
+            let html = '';
+            for (const item of data.items) {
+                const precioFormateado = Number(item.precio).toLocaleString('es-PY');
+                html += `
+                    <div class="cart-item" data-id="${item.id}">
+                        <div class="item-info">
+                            <strong>${escapeHtml(item.nombre)}</strong><br>
+                            ${item.moneda} ${precioFormateado}
+                        </div>
+                        <div class="item-cantidad">
+                            <button class="cantidad-btn" onclick="actualizarCantidad('${item.id}', 'decrease')">-</button>
+                            <span style="min-width: 30px; text-align: center;">${item.cantidad}</span>
+                            <button class="cantidad-btn" onclick="actualizarCantidad('${item.id}', 'increase')">+</button>
+                            <button class="remove-btn" onclick="actualizarCantidad('${item.id}', 'remove')">X</button>
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+
+            // Actualizar total
+            const totalSpan = document.getElementById('total-precio');
+            if (totalSpan && data.items.length > 0) {
+                totalSpan.innerHTML = `${data.items[0].moneda} ${Number(data.total_precio).toLocaleString('es-PY')}`;
+            }
+
+            // Verificar stock de cada producto (asíncrono)
+            const items = document.querySelectorAll('.cart-item');
+            const verificaciones = Array.from(items).map(async (itemDiv) => {
+                const id = itemDiv.dataset.id;
+                const cantidadSpan = itemDiv.querySelector('.item-cantidad span');
+                const cantidad = parseInt(cantidadSpan.innerText);
+                return verificarStock(id, cantidad, itemDiv);
+            });
+
+            // Cuando terminen todas las verificaciones, habilitar/deshabilitar botón finalizar
+            Promise.all(verificaciones).then(resultados => {
+                const hayError = resultados.includes(false);
+                const btnFinalizar = document.getElementById('finalizar-compra');
+                if (hayError) {
+                    btnFinalizar.disabled = true;
+                    btnFinalizar.style.opacity = '0.5';
+                    btnFinalizar.title = 'Hay productos con stock insuficiente';
+                } else {
+                    btnFinalizar.disabled = false;
+                    btnFinalizar.style.opacity = '1';
+                    btnFinalizar.title = '';
+                }
+            });
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        async function actualizarCantidad(id, accion) {
+            try {
+                const response = await fetch('/actualizar-carrito/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ producto_id: id, accion: accion })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    await cargarCarrito();
+                } else {
+                    console.error('Error en respuesta:', data);
+                    alert('❌ Error al actualizar el carrito: ' + (data.error || 'desconocido'));
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                alert('❌ Error de conexión: ' + error.message);
+            }
+        }
+
+        document.getElementById('finalizar-compra')?.addEventListener('click', function() {
+            window.location.href = '/finalizar-compra/';
+        });
+
+        cargarCarrito();
+    </script>
+</body>
+</html>

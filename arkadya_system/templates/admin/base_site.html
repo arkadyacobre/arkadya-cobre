@@ -1,0 +1,33 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Estilo para el enlace personalizado */
+    .resumen-link {
+        margin: 10px 0;
+        padding: 8px 15px;
+        background: #8b5a2b;
+        border-radius: 5px;
+        text-align: center;
+    }
+    .resumen-link a {
+        color: white !important;
+        text-decoration: none;
+        display: block;
+        font-weight: bold;
+    }
+    .resumen-link a:hover {
+        background: #6b4220;
+        border-radius: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block nav-global %}
+{{ block.super }}
+<div class="resumen-link">
+    <a href="/admin/resumen-contable/">📊 Ver Resumen Contable (Ganancias y Pérdidas)</a>
+</div>
+{% endblock %}

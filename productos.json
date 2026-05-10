@@ -1,0 +1,44 @@
+[
+{
+  "model": "productos.producto",
+  "pk": 1,
+  "fields": {
+    "nombre": "Brazalete Romano Ancho",
+    "descripcion": "Puro Cobre",
+    "foto": "productos/Brazalate_romano_ancho_bLIsd9y.jpeg",
+    "stock": 9,
+    "stock_minimo": 1,
+    "precio_pyg": "85000",
+    "categoria": "brazaletes",
+    "destacado": true
+  }
+},
+{
+  "model": "productos.producto",
+  "pk": 2,
+  "fields": {
+    "nombre": "Vaso",
+    "descripcion": "",
+    "foto": "productos/Vaso_4qjvPlZ.jpg",
+    "stock": 10,
+    "stock_minimo": 1,
+    "precio_pyg": "160000",
+    "categoria": "vasos",
+    "destacado": true
+  }
+},
+{
+  "model": "productos.producto",
+  "pk": 3,
+  "fields": {
+    "nombre": "Anillo Liso de Cobre",
+    "descripcion": "",
+    "foto": "productos/Anillo_de_Cobre_Liso.jpeg",
+    "stock": 10,
+    "stock_minimo": 1,
+    "precio_pyg": "50000",
+    "categoria": "anillos",
+    "destacado": true
+  }
+}
+]

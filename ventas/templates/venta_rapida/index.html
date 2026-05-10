@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Venta Rápida - Arkadya Cobre</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f0eb;
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        /* Header */
+        .header {
+            background: #8b5a2b;
+            color: white;
+            padding: 16px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+        
+        /* Tarjetas */
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #8b5a2b;
+            border-bottom: 2px solid #e8d9cc;
+            padding-bottom: 8px;
+        }
+        
+        /* Formulario */
+        label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+            color: #555;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-size: 1rem;
+            margin-bottom: 12px;
+            font-family: inherit;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #8b5a2b;
+        }
+        
+        /* Botones */
+        button {
+            background: #8b5a2b;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s;
+        }
+        
+        button:hover {
+            background: #6b4220;
+        }
+        
+        .btn-success {
+            background: #25D366;
+        }
+        
+        .btn-success:hover {
+            background: #128C7E;
+        }
+        
+        .btn-danger {
+            background: #e63946;
+        }
+        
+        .btn-danger:hover {
+            background: #c1121f;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #8b5a2b;
+            color: #8b5a2b;
+            margin-top: 8px;
+        }
+        
+        /* Productos */
+        .producto-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .producto-info {
+            flex: 1;
+        }
+        
+        .producto-nombre {
+            font-weight: bold;
+        }
+        
+        .producto-precio {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .producto-cantidad {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .cantidad-btn {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            font-size: 1.2rem;
+            border-radius: 50%;
+        }
+        
+        .total {
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-align: right;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 2px solid #8b5a2b;
+        }
+        
+        /* Búsqueda */
+        .search-results {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            margin-top: -10px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        
+        .search-result-item {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        
+        .search-result-item:hover {
+            background: #f5f0eb;
+        }
+        
+        /* Badge */
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        
+        .badge-success {
+            background: #2d6a4f;
+            color: white;
+        }
+        
+        /* Responsive */
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+            }
+            .producto-cantidad {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .cantidad-btn {
+                width: 32px;
+                height: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏺 Venta Rápida</h1>
+            <p>Completá los datos del cliente y productos</p>
+        </div>
+
+        <!-- SECCIÓN CLIENTE -->
+        <div class="card">
+            <div class="card-title">👤 Datos del Cliente</div>
+            
+            <div style="margin-bottom: 12px;">
+                <label>🔍 Buscar cliente existente</label>
+                <input type="text" id="buscar-cliente" placeholder="Nombre o teléfono...">
+                <div id="resultados-clientes" class="search-results"></div>
+            </div>
+            
+            <input type="hidden" id="cliente-id">
+            
+            <label>📛 Nombre completo</label>
+            <input type="text" id="cliente-nombre" placeholder="Ej: María González">
+            
+            <label>📱 Teléfono</label>
+            <input type="tel" id="cliente-telefono" placeholder="Ej: 0986123456">
+            
+            <label>📍 Ciudad / Localidad</label>
+            <input type="text" id="cliente-localidad" placeholder="Ej: Asunción">
+        </div>
+
+        <!-- SECCIÓN PRODUCTOS -->
+        <div class="card">
+            <div class="card-title">📦 Agregar Productos</div>
+            
+            <label>🔍 Buscar producto</label>
+            <input type="text" id="buscar-producto" placeholder="Nombre del producto...">
+            <div id="resultados-productos" class="search-results"></div>
+            
+            <div id="lista-productos"></div>
+            
+            <div class="total">
+                Total: <span id="total-monto">₲ 0</span>
+            </div>
+        </div>
+        
+        <!-- SECCIÓN PAGO Y ENVÍO -->
+        <div class="card">
+            <div class="card-title">💰 Pago y Envío</div>
+            
+            <label>📌 Origen de la venta</label>
+            <select id="origen">
+                <option value="whatsapp">💬 WhatsApp</option>
+                <option value="instagram">📷 Instagram</option>
+                <option value="presencial">🏪 Presencial</option>
+            </select>
+            
+            <label>💳 Método de pago</label>
+            <select id="metodo-pago">
+                <option value="transferencia">Transferencia bancaria (Ueno)</option>
+                <option value="contra_entrega">Pago contra entrega</option>
+                <option value="efectivo">Efectivo</option>
+            </select>
+            
+            <label>🚚 Método de entrega</label>
+            <select id="metodo-entrega">
+                <option value="delivery">Delivery (Asigar)</option>
+                <option value="retiro">Retiro en persona</option>
+                <option value="correo">Envío por correo</option>
+            </select>
+            
+            <label>💰 Costo de envío (₲)</label>
+            <input type="number" id="costo-envio" value="0" step="5000">
+        </div>
+        
+         <!-- BOTONES DE ACCIÓN -->
+        <div class="card">
+            <button id="guardar-solo" style="background: #2d6a4f; margin-bottom: 12px;">💾 Guardar Pedido (solo)</button>
+            <button id="guardar-notificar" class="btn-success">📱 Guardar y Notificar por WhatsApp</button>
+            <button id="limpiar-todo" class="btn-outline" style="margin-top: 12px;">🗑️ Limpiar formulario</button>
+        </div>
+    </div>
+    
+    <script>
+        // Token para las peticiones
+        const token = '{{ token }}';
+        
+        // Array para almacenar productos en la venta
+        let productosSeleccionados = [];
+        
+        // Funciones auxiliares
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        const csrftoken = getCookie('csrftoken');
+        
+        function actualizarTotal() {
+            let total = 0;
+            productosSeleccionados.forEach(p => {
+                total += p.precio * p.cantidad;
+            });
+            const costoEnvio = parseInt(document.getElementById('costo-envio').value) || 0;
+            total += costoEnvio;
+            document.getElementById('total-monto').innerHTML = `₲ ${total.toLocaleString('es-PY')}`;
+        }
+        
+        function renderizarProductos() {
+            const container = document.getElementById('lista-productos');
+            if (productosSeleccionados.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#999;">No hay productos agregados</p>';
+                actualizarTotal();
+                return;
+            }
+            
+            let html = '';
+            productosSeleccionados.forEach((p, index) => {
+                html += `
+                    <div class="producto-item">
+                        <div class="producto-info">
+                            <div class="producto-nombre">${p.nombre}</div>
+                            <div class="producto-precio">₲ ${p.precio.toLocaleString('es-PY')} c/u</div>
+                        </div>
+                        <div class="producto-cantidad">
+                            <button class="cantidad-btn" onclick="cambiarCantidad(${index}, -1)">-</button>
+                            <span style="min-width: 30px; text-align: center;">${p.cantidad}</span>
+                            <button class="cantidad-btn" onclick="cambiarCantidad(${index}, 1)">+</button>
+                            <button class="cantidad-btn btn-danger" style="background:#e63946;" onclick="eliminarProducto(${index})">X</button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+            actualizarTotal();
+        }
+        
+        function cambiarCantidad(index, delta) {
+            const nuevaCantidad = productosSeleccionados[index].cantidad + delta;
+            if (nuevaCantidad < 1) {
+                eliminarProducto(index);
+            } else {
+                productosSeleccionados[index].cantidad = nuevaCantidad;
+                renderizarProductos();
+            }
+        }
+        
+        function eliminarProducto(index) {
+            productosSeleccionados.splice(index, 1);
+            renderizarProductos();
+        }
+        
+    function agregarProducto(producto) {
+        const existente = productosSeleccionados.find(p => p.id === producto.id);
+        if (existente) {
+            existente.cantidad++;
+        } else {
+            productosSeleccionados.push({
+                id: producto.id,
+                nombre: producto.nombre,
+                precio: producto.precio,
+                cantidad: 1
+            });
+        }
+        renderizarProductos();
+        document.getElementById('buscar-producto').value = '';
+        document.getElementById('resultados-productos').style.display = 'none';
+    }
+        
+        // Búsqueda de clientes...
+        const buscarCliente = document.getElementById('buscar-cliente');
+        let timeoutCliente;
+        buscarCliente.addEventListener('input', function() {
+            clearTimeout(timeoutCliente);
+            const termino = this.value;
+            if (termino.length < 2) {
+                document.getElementById('resultados-clientes').style.display = 'none';
+                return;
+            }
+            timeoutCliente = setTimeout(() => {
+                fetch(`/venta-rapida/api/buscar-clientes/?token=${token}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: `termino=${encodeURIComponent(termino)}`
+                })
+                .then(res => res.json())
+                .then(data => {
+                    const container = document.getElementById('resultados-clientes');
+                    if (data.clientes && data.clientes.length > 0) {
+                        container.innerHTML = data.clientes.map(c => `
+                            <div class="search-result-item" onclick="seleccionarCliente(${c.id}, '${c.nombre}', '${c.telefono}', '${c.localidad}')">
+                                <strong>${c.nombre}</strong><br>
+                                <small>📱 ${c.telefono} | 📍 ${c.localidad}</small>
+                            </div>
+                        `).join('');
+                        container.style.display = 'block';
+                    } else {
+                        container.innerHTML = '<div class="search-result-item">No se encontraron clientes</div>';
+                        container.style.display = 'block';
+                    }
+                });
+            }, 500);
+        });
+        
+        function seleccionarCliente(id, nombre, telefono, localidad) {
+            document.getElementById('cliente-id').value = id;
+            document.getElementById('cliente-nombre').value = nombre;
+            document.getElementById('cliente-telefono').value = telefono;
+            document.getElementById('cliente-localidad').value = localidad;
+            document.getElementById('resultados-clientes').style.display = 'none';
+            document.getElementById('buscar-cliente').value = '';
+        }
+        
+        // Búsqueda de productos...
+        const buscarProducto = document.getElementById('buscar-producto');
+        let timeoutProducto;
+        buscarProducto.addEventListener('input', function() {
+            clearTimeout(timeoutProducto);
+            const termino = this.value;
+            if (termino.length < 2) {
+                document.getElementById('resultados-productos').style.display = 'none';
+                return;
+            }
+            timeoutProducto = setTimeout(() => {
+                fetch(`/venta-rapida/api/buscar-productos/?token=${token}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: `termino=${encodeURIComponent(termino)}`
+                })
+                .then(res => res.json())
+                .then(data => {
+                    const container = document.getElementById('resultados-productos');
+                    if (data.productos && data.productos.length > 0) {
+                        container.innerHTML = data.productos.map(p => `
+                            <div class="search-result-item" onclick="agregarProducto({id: ${p.id}, nombre: '${p.nombre}', precio: ${p.precio}})">
+                                <strong>${p.nombre}</strong><br>
+                                <small>₲ ${p.precio.toLocaleString('es-PY')} | Stock: ${p.stock}</small>
+                            </div>
+                        `).join('');
+                        container.style.display = 'block';
+                    } else {
+                        container.innerHTML = '<div class="search-result-item">No se encontraron productos</div>';
+                        container.style.display = 'block';
+                    }
+                });
+            }, 500);
+        });
+        
+        // Función base para guardar venta
+        function guardarVenta(notificar = true) {
+            const clienteId = document.getElementById('cliente-id').value;
+            const clienteNombre = document.getElementById('cliente-nombre').value;
+            const clienteTelefono = document.getElementById('cliente-telefono').value;
+            const clienteLocalidad = document.getElementById('cliente-localidad').value;
+            
+            if (!clienteNombre || !clienteTelefono) {
+                alert('⚠️ Complete los datos del cliente (nombre y teléfono)');
+                return;
+            }
+            
+            if (productosSeleccionados.length === 0) {
+                alert('⚠️ Agregue al menos un producto');
+                return;
+            }
+            
+            const productosParaEnviar = productosSeleccionados.map(p => ({
+                producto_id: p.id,
+                producto_nombre: p.nombre,
+                cantidad: p.cantidad,
+                precio_unitario: p.precio
+            }));
+            
+            const data = {
+                cliente_id: clienteId || null,
+                cliente_nombre: clienteNombre,
+                cliente_telefono: clienteTelefono,
+                cliente_localidad: clienteLocalidad,
+                productos: productosParaEnviar,
+                total: productosSeleccionados.reduce((sum, p) => sum + (p.precio * p.cantidad), 0) + (parseInt(document.getElementById('costo-envio').value) || 0),
+                costo_envio: parseInt(document.getElementById('costo-envio').value) || 0,
+                origen: document.getElementById('origen').value,
+                metodo_pago: document.getElementById('metodo-pago').value,
+                metodo_entrega: document.getElementById('metodo-entrega').value
+            };
+            
+            const btn = notificar ? document.getElementById('guardar-notificar') : document.getElementById('guardar-solo');
+            const textoOriginal = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Guardando...';
+            
+            fetch(`/venta-rapida/api/guardar-venta/?token=${token}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (notificar) {
+                        alert(`✅ Pedido #${data.nro_pedido} guardado con éxito!`);
+                        if (data.whatsapp_url) {
+                            window.open(data.whatsapp_url, '_blank');
+                        }
+                    } else {
+                        alert(`✅ Pedido #${data.nro_pedido} guardado sin notificación.`);
+                    }
+                    
+                    // Limpiar formulario
+                    productosSeleccionados = [];
+                    renderizarProductos();
+                    document.getElementById('cliente-id').value = '';
+                    document.getElementById('cliente-nombre').value = '';
+                    document.getElementById('cliente-telefono').value = '';
+                    document.getElementById('cliente-localidad').value = '';
+                    document.getElementById('costo-envio').value = '0';
+                } else {
+                    alert('❌ Error: ' + (data.error || 'No se pudo guardar'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('❌ Error al guardar el pedido');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = textoOriginal;
+            });
+        }
+        
+        // Eventos de botones
+        document.getElementById('guardar-solo').addEventListener('click', function() {
+            guardarVenta(false);
+        });
+        
+        document.getElementById('guardar-notificar').addEventListener('click', function() {
+            guardarVenta(true);
+        });
+        
+        document.getElementById('limpiar-todo').addEventListener('click', function() {
+            if (confirm('¿Seguro que querés limpiar todo el formulario?')) {
+                productosSeleccionados = [];
+                renderizarProductos();
+                document.getElementById('cliente-id').value = '';
+                document.getElementById('cliente-nombre').value = '';
+                document.getElementById('cliente-telefono').value = '';
+                document.getElementById('cliente-localidad').value = '';
+                document.getElementById('buscar-cliente').value = '';
+                document.getElementById('buscar-producto').value = '';
+                document.getElementById('costo-envio').value = '0';
+                document.getElementById('origen').value = 'whatsapp';
+                document.getElementById('metodo-pago').value = 'transferencia';
+                document.getElementById('metodo-entrega').value = 'delivery';
+                alert('🧹 Formulario limpiado');
+            }
+        });
+        
+        document.getElementById('costo-envio').addEventListener('input', actualizarTotal);
+    </script>
+</body>
+</html>
+
