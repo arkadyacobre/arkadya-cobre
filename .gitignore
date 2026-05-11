@@ -1,0 +1,41 @@
+# Archivos ignorados por Git
+# Entorno virtual
+venv/
+env/
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Base de datos
+db.sqlite3
+*.sqlite3
+
+# Archivos de media subidos por usuarios
+media/
+staticfiles/
+
+# Configuración local
+local_settings.py
+.env
+
+# Logs
+*.log
+
+# Archivos de editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Django migraciones (opcional: comenta si quieres incluir las migraciones)
+# */migrations/*.py
+# !*/migrations/__init__.py
+
+# Archivos de backup
+*.bak
+*.backup
