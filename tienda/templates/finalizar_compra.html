@@ -16,6 +16,8 @@
         button:hover { background: #128C7E; }
         .btn-volver { background: #8b5a2b; margin-top: 10px; }
         .btn-volver:hover { background: #6b4220; }
+        .alerta-error { background: #fff1f0; border: 1px solid #e6a5a0; border-radius: 8px; color: #7a1f16; margin-bottom: 18px; padding: 12px 14px; }
+        .alerta-error ul { margin: 8px 0 0 18px; }
         footer { background: #3e2a21; color: #d4b896; text-align: center; padding: 25px; margin-top: 50px; }
     </style>
 </head>
@@ -28,6 +30,18 @@
     <div class="container">
         <div class="card">
             <h2>📝 Datos de contacto</h2>
+            {% if mensaje_error %}
+                <div class="alerta-error">
+                    <strong>{{ mensaje_error }}</strong>
+                    {% if errores_stock %}
+                        <ul>
+                            {% for error in errores_stock %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            {% endif %}
             <form method="POST">
                 {% csrf_token %}
                 <label>👤 Nombre completo:</label>

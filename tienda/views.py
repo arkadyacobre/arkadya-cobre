@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.contrib import messages
+from django.db import transaction
 from productos.models import Producto, TasaCambio
 from ventas.models import Venta, DetalleVenta, obtener_o_crear_cliente
 from .models import Articulo
@@ -239,7 +240,7 @@ def ver_carrito(request):
     })
 
 
-def finalizar_compra_whatsapp(request):
+def finalizar_compra_whatsapp_legacy(request):
     """Guarda el pedido en la base de datos y envía WhatsApp"""
     carrito = request.session.get('carrito', {})
     
@@ -433,4 +434,114 @@ def detalle_articulo(request, slug):
 def blog_detalle(request, articulo_id):
     articulo = Articulo.objects.get(id=articulo_id)
     return render(request, 'blog_detail.html', {'articulo': articulo})
+
+
+def finalizar_compra_whatsapp(request):
+    """Guarda el pedido web en una transaccion y abre WhatsApp de Arkadya."""
+    carrito = request.session.get('carrito', {})
+
+    if not carrito:
+        return redirect('catalogo')
+
+    if request.method != 'POST':
+        return render(request, 'finalizar_compra.html', {'carrito': carrito})
+
+    nombre = request.POST.get('nombre')
+    telefono = request.POST.get('telefono')
+    localidad = request.POST.get('localidad', '')
+    metodo_pago = request.POST.get('metodo_pago', 'transferencia')
+    metodo_entrega = request.POST.get('metodo_entrega', 'delivery')
+    primer_item = list(carrito.values())[0]
+    moneda = primer_item.get('moneda', 'PYG')
+
+    try:
+        with transaction.atomic():
+            cliente = obtener_o_crear_cliente(nombre, telefono, localidad)
+            total_pyg = Decimal('0')
+            detalles = []
+
+            for item in carrito.values():
+                try:
+                    producto = Producto.objects.select_for_update().get(id=item['id'])
+                except Producto.DoesNotExist:
+                    raise ValueError('Un producto del carrito ya no esta disponible.')
+
+                cantidad = int(item['cantidad'])
+                if cantidad < 1:
+                    raise ValueError('La cantidad debe ser mayor a cero.')
+                if not producto.hay_stock(cantidad):
+                    raise ValueError(
+                        f"{producto.nombre} (solicitado: {cantidad}, disponible: {producto.stock})"
+                    )
+
+                precio_unitario = producto.precio_pyg
+                total_pyg += precio_unitario * cantidad
+                detalles.append({
+                    'producto': producto,
+                    'cantidad': cantidad,
+                    'precio_unitario': precio_unitario,
+                })
+
+            venta = Venta.objects.create(
+                cliente=cliente,
+                estado='pendiente',
+                origen='web',
+                moneda=moneda,
+                subtotal=total_pyg,
+                costo_envio=0,
+                total=total_pyg,
+                metodo_pago=metodo_pago,
+                metodo_entrega=metodo_entrega,
+                se_envio=False,
+                facturado=False,
+            )
+
+            for detalle in detalles:
+                DetalleVenta.objects.create(
+                    venta=venta,
+                    producto=detalle['producto'],
+                    cantidad=detalle['cantidad'],
+                    precio_unitario=detalle['precio_unitario'],
+                    moneda='PYG',
+                )
+
+            cliente.cantidad_compras += 1
+            cliente.save()
+    except ValueError as exc:
+        return render(request, 'finalizar_compra.html', {
+            'carrito': carrito,
+            'errores_stock': [str(exc)],
+            'mensaje_error': 'No pudimos completar el pedido. Por favor, revisa el carrito.',
+        })
+
+    request.session['carrito'] = {}
+    request.session.modified = True
+
+    mensaje = "*ARKADYA COBRE - PEDIDO CONFIRMADO*\n\n"
+    mensaje += f"*Numero de pedido:* {venta.nro_pedido}\n"
+    mensaje += f"*Cliente:* {cliente.nombre}\n"
+    mensaje += f"*Telefono:* {cliente.telefono}\n"
+    mensaje += f"*Localidad:* {cliente.localidad}\n\n"
+    mensaje += "*PRODUCTOS:*\n"
+
+    for detalle in detalles:
+        subtotal_detalle = detalle['precio_unitario'] * detalle['cantidad']
+        mensaje += (
+            f"- {detalle['cantidad']} x {detalle['producto'].nombre} = "
+            f"PYG {subtotal_detalle:,.0f}\n"
+        )
+
+    mensaje += f"\n*TOTAL: PYG {total_pyg:,.0f}*\n"
+    mensaje += f"*Metodo de pago:* {dict(Venta.METODO_PAGO).get(metodo_pago, metodo_pago)}\n"
+    mensaje += f"*Metodo de entrega:* {dict(Venta.ENTREGA).get(metodo_entrega, metodo_entrega)}\n\n"
+    mensaje += "Gracias por tu compra.\n"
+    mensaje += "Nos pondremos en contacto para coordinar envio y pago.\n\n"
+    mensaje += "WhatsApp: +595 991519823\n"
+    mensaje += "Instagram: @arkadyacobre"
+
+    import urllib.parse
+    mensaje_codificado = urllib.parse.quote(mensaje)
+    whatsapp_url = f"https://wa.me/595991519823?text={mensaje_codificado}"
+
+    return redirect(whatsapp_url)
 
