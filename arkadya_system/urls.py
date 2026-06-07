@@ -9,7 +9,6 @@ from ventas.views import venta_rapida, api_buscar_clientes, api_buscar_productos
 from contabilidad.views import dashboard_mejorado
 from tienda.views import cuidados_cobre, beneficios_cobre, obtener_stock
 from tienda.views import blog, detalle_articulo
-from tienda.views import blog, blog_detalle 
 
 
 urlpatterns = [
@@ -52,8 +51,6 @@ urlpatterns = [
     #BLOG
     path('blog/', blog, name='blog'),
     path('blog/<slug:slug>/', detalle_articulo, name='detalle_articulo'),
-    path('blog/', blog, name='blog'),
-    path('blog/<int:articulo_id>/', blog_detalle, name='blog_detalle'),
 ]
 
 if settings.DEBUG:

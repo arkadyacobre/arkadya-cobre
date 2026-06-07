@@ -137,6 +137,9 @@ def agregar_al_carrito(request):
             
             if producto_id in carrito:
                 # Si ya existe, aumentar cantidad
+                cantidad_total = carrito[producto_id]['cantidad'] + cantidad
+                if not producto.hay_stock(cantidad_total):
+                    return JsonResponse({'success': False, 'error': 'No hay suficiente stock disponible'}, status=400)
                 carrito[producto_id]['cantidad'] += cantidad
             else:
                 # Si no existe, agregar
@@ -187,6 +190,13 @@ def actualizar_carrito(request):
             
             if accion == 'increase':
                 if producto_id in carrito:
+                    try:
+                        producto = Producto.objects.get(id=producto_id)
+                        cantidad_total = carrito[producto_id]['cantidad'] + 1
+                        if not producto.hay_stock(cantidad_total):
+                            return JsonResponse({'success': False, 'error': 'No hay suficiente stock disponible'}, status=400)
+                    except Producto.DoesNotExist:
+                        return JsonResponse({'success': False, 'error': 'Producto no encontrado'}, status=400)
                     carrito[producto_id]['cantidad'] += 1
             elif accion == 'decrease':
                 if producto_id in carrito:

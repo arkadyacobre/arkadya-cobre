@@ -1,4 +1,5 @@
-from django.db import models
+from django.core.exceptions import ValidationError
+from django.db import models, transaction
 from productos.models import Producto  # ← Agregar esta línea
 from django.core.validators import MinValueValidator
 from django.utils import timezone
@@ -157,11 +158,8 @@ class Venta(models.Model):
         return False
     
     def cancelar_venta(self):
-        """Cancela la venta y restaura el stock"""
+        """Cancela la venta. La senal de Venta restaura el stock una sola vez."""
         if self.estado in ['pendiente', 'pagado']:
-            # Restaurar stock
-            for detalle in self.detalles.all():
-                detalle.producto.aumentar_stock(detalle.cantidad)
             self.estado = 'cancelado'
             self.save()
             return True
@@ -257,16 +255,33 @@ class DetalleVenta(models.Model):
         return f"{self.cantidad} x {self.producto.nombre} = {self.subtotal()} {self.moneda}"
     
     def save(self, *args, **kwargs):
-        # Si es nuevo, descontar stock
-        if not self.pk:
-            self.producto.descontar_stock(self.cantidad)
-        super().save(*args, **kwargs)
-        self.venta.actualizar_total()
+        with transaction.atomic():
+            if self.pk:
+                anterior = DetalleVenta.objects.select_for_update().get(pk=self.pk)
+                if anterior.producto_id != self.producto_id:
+                    if self.venta.estado != 'cancelado':
+                        anterior.producto.aumentar_stock(anterior.cantidad)
+                        if not self.producto.descontar_stock(self.cantidad):
+                            raise ValidationError(f"No hay suficiente stock para {self.producto.nombre}.")
+                else:
+                    diferencia = self.cantidad - anterior.cantidad
+                    if self.venta.estado != 'cancelado':
+                        if diferencia > 0 and not self.producto.descontar_stock(diferencia):
+                            raise ValidationError(f"No hay suficiente stock para {self.producto.nombre}.")
+                        if diferencia < 0:
+                            self.producto.aumentar_stock(abs(diferencia))
+            elif self.venta.estado != 'cancelado':
+                if not self.producto.descontar_stock(self.cantidad):
+                    raise ValidationError(f"No hay suficiente stock para {self.producto.nombre}.")
+
+            super().save(*args, **kwargs)
+            self.venta.actualizar_total()
     
     def delete(self, *args, **kwargs):
-        # Restaurar stock al eliminar
-        self.producto.aumentar_stock(self.cantidad)
+        venta = self.venta
+        if venta.estado != 'cancelado':
+            self.producto.aumentar_stock(self.cantidad)
         super().delete(*args, **kwargs)
-        self.venta.actualizar_total()
+        venta.actualizar_total()
     
 

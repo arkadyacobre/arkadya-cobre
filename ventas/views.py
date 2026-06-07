@@ -1,26 +1,29 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse
-from django.conf import settings
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
-from django.db import models
-from .models import Venta, DetalleVenta, Cliente, obtener_o_crear_cliente
-from productos.models import Producto
 from decimal import Decimal
 import json
 import urllib.parse
 
+from django.conf import settings
+from django.db import models, transaction
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, render
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+
+from productos.models import Producto
+from .models import Cliente, DetalleVenta, Venta, obtener_o_crear_cliente
+
+
 def verificar_token(request):
-    """Verifica que el token de acceso sea válido"""
+    """Verifica que el token de acceso sea valido."""
     token = request.GET.get('token', '')
     return token == settings.TOKEN_VENTA_RAPIDA
 
 
 def venta_rapida(request):
-    """Vista principal del formulario móvil para ventas rápidas"""
+    """Vista principal del formulario movil para ventas rapidas."""
     if not verificar_token(request):
         return render(request, 'venta_rapida/error.html', {
-            'mensaje': 'Acceso no autorizado. Token inválido.'
+            'mensaje': 'Acceso no autorizado. Token invalido.'
         })
 
     productos = Producto.objects.filter(stock__gt=0).order_by('nombre')
@@ -33,7 +36,7 @@ def venta_rapida(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def api_buscar_clientes(request):
-    """API para buscar clientes por nombre o teléfono"""
+    """API para buscar clientes por nombre o telefono."""
     if not verificar_token(request):
         return JsonResponse({'error': 'No autorizado'}, status=401)
 
@@ -58,7 +61,7 @@ def api_buscar_clientes(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def api_buscar_productos(request):
-    """API para buscar productos por nombre"""
+    """API para buscar productos por nombre."""
     if not verificar_token(request):
         return JsonResponse({'error': 'No autorizado'}, status=401)
 
@@ -84,67 +87,93 @@ def api_buscar_productos(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def api_guardar_venta_rapida(request):
-    """API para guardar la venta rápida"""
+    """API para guardar la venta rapida."""
     if not verificar_token(request):
         return JsonResponse({'error': 'No autorizado'}, status=401)
 
     try:
         data = json.loads(request.body)
+        productos_solicitados = data.get('productos', [])
+        if not productos_solicitados:
+            return JsonResponse({'success': False, 'error': 'La venta no tiene productos.'}, status=400)
 
-        # Obtener o crear cliente
-        cliente_id = data.get('cliente_id')
-        if cliente_id:
-            cliente = get_object_or_404(Cliente, id=cliente_id)
-        else:
-            cliente = obtener_o_crear_cliente(
-                nombre_completo=data.get('cliente_nombre'),
-                telefono=data.get('cliente_telefono'),
-                localidad=data.get('cliente_localidad', '')
+        with transaction.atomic():
+            cliente_id = data.get('cliente_id')
+            if cliente_id:
+                cliente = get_object_or_404(Cliente, id=cliente_id)
+            else:
+                cliente = obtener_o_crear_cliente(
+                    nombre_completo=data.get('cliente_nombre'),
+                    telefono=data.get('cliente_telefono'),
+                    localidad=data.get('cliente_localidad', '')
+                )
+
+            detalles = []
+            subtotal = Decimal('0')
+            for item in productos_solicitados:
+                producto = get_object_or_404(
+                    Producto.objects.select_for_update(),
+                    id=item['producto_id']
+                )
+                cantidad = int(item['cantidad'])
+                if cantidad < 1:
+                    return JsonResponse({'success': False, 'error': 'La cantidad debe ser mayor a cero.'}, status=400)
+                if not producto.hay_stock(cantidad):
+                    return JsonResponse({
+                        'success': False,
+                        'error': f"No hay suficiente stock para {producto.nombre}. Disponible: {producto.stock}."
+                    }, status=400)
+
+                precio_unitario = producto.precio_pyg
+                subtotal += precio_unitario * cantidad
+                detalles.append({
+                    'producto': producto,
+                    'cantidad': cantidad,
+                    'precio_unitario': precio_unitario,
+                })
+
+            costo_envio = Decimal(str(data.get('costo_envio', 0) or 0))
+            total = subtotal + costo_envio
+
+            venta = Venta.objects.create(
+                cliente=cliente,
+                estado='pendiente',
+                origen=data.get('origen', 'whatsapp'),
+                moneda='PYG',
+                subtotal=subtotal,
+                costo_envio=costo_envio,
+                total=total,
+                metodo_pago=data.get('metodo_pago', 'transferencia'),
+                metodo_entrega=data.get('metodo_entrega', 'delivery'),
+                se_envio=False,
+                facturado=False
             )
 
-        # Crear venta
-        venta = Venta.objects.create(
-            cliente=cliente,
-            estado='pendiente',
-            origen=data.get('origen', 'whatsapp'),
-            moneda='PYG',
-            subtotal=Decimal(str(data.get('total', 0))),
-            costo_envio=Decimal(str(data.get('costo_envio', 0))),
-            total=Decimal(str(data.get('total', 0))),
-            metodo_pago=data.get('metodo_pago', 'transferencia'),
-            metodo_entrega=data.get('metodo_entrega', 'delivery'),
-            se_envio=False,
-            facturado=False
-        )
+            for detalle in detalles:
+                DetalleVenta.objects.create(
+                    venta=venta,
+                    producto=detalle['producto'],
+                    cantidad=detalle['cantidad'],
+                    precio_unitario=detalle['precio_unitario'],
+                    moneda='PYG'
+                )
 
-        # Agregar detalles
-        for item in data.get('productos', []):
-            producto = get_object_or_404(Producto, id=item['producto_id'])
-            DetalleVenta.objects.create(
-                venta=venta,
-                producto=producto,
-                cantidad=int(item['cantidad']),
-                precio_unitario=Decimal(str(item['precio_unitario'])),
-                moneda='PYG'
-            )
+            cliente.cantidad_compras += 1
+            cliente.save()
 
-        # Incrementar contador de compras del cliente
-        cliente.cantidad_compras += 1
-        cliente.save()
+        mensaje = "*ARKADYA COBRE - PEDIDO CONFIRMADO*\n\n"
+        mensaje += f"*Numero de pedido:* {venta.nro_pedido}\n"
+        mensaje += f"*Cliente:* {cliente.nombre}\n"
+        mensaje += f"*Telefono:* {cliente.telefono}\n\n"
+        mensaje += "*PRODUCTOS:*\n"
 
-        # Enviar WhatsApp al cliente
-        mensaje = f"🏺 *ARKADYA COBRE - PEDIDO CONFIRMADO* 🏺\n\n"
-        mensaje += f"📋 *Número de pedido:* {venta.nro_pedido}\n"
-        mensaje += f"👤 *Cliente:* {cliente.nombre}\n"
-        mensaje += f"📱 *Teléfono:* {cliente.telefono}\n\n"
-        mensaje += "*📦 PRODUCTOS:*\n"
+        for detalle in detalles:
+            subtotal_detalle = detalle['precio_unitario'] * detalle['cantidad']
+            mensaje += f"- {detalle['cantidad']} x {detalle['producto'].nombre} = PYG {int(subtotal_detalle):,}\n"
 
-        for item in data.get('productos', []):
-            mensaje += f"• {item['cantidad']} x {item['producto_nombre']} = ₲ {int(item['precio_unitario'] * item['cantidad']):,}\n"
-
-        mensaje += f"\n*💰 TOTAL: ₲ {int(venta.total):,}*\n"
-        mensaje += f"🚚 *Método de entrega:* {dict(Venta.ENTREGA).get(data.get('metodo_entrega'), data.get('metodo_entrega'))}\n\n"
-        mensaje += "✅ *¡Gracias por tu compra!* Respondé este mensaje para coordinar envío y pago."
+        mensaje += f"\n*TOTAL: PYG {int(venta.total):,}*\n"
+        mensaje += f"*Metodo de entrega:* {dict(Venta.ENTREGA).get(data.get('metodo_entrega'), data.get('metodo_entrega'))}\n\n"
+        mensaje += "Gracias por tu compra. Responde este mensaje para coordinar envio y pago."
 
         mensaje_codificado = urllib.parse.quote(mensaje)
         whatsapp_url = f"https://wa.me/{cliente.telefono.replace('+', '')}?text={mensaje_codificado}"
@@ -158,6 +187,3 @@ def api_guardar_venta_rapida(request):
 
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
-
-# Create your views here.
-
