@@ -44,6 +44,57 @@
             transform: scale(1.05);
             background: #f0f0f0;
         }
+
+        .floating-cart {
+            position: fixed;
+            left: 20px;
+            bottom: 20px;
+            background: #8b5a2b;
+            color: white;
+            padding: 12px 18px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+            z-index: 1000;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 2px solid rgba(255,255,255,0.85);
+        }
+        .floating-cart:hover {
+            background: #6b4220;
+            transform: translateY(-2px);
+        }
+
+        .language-widget {
+            background: rgba(255,255,255,0.14);
+            border: 1px solid rgba(255,255,255,0.35);
+            border-radius: 8px;
+            padding: 8px 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .language-widget strong {
+            color: white;
+            font-size: 0.9em;
+        }
+        .language-widget .goog-te-gadget {
+            color: transparent !important;
+            font-size: 0;
+        }
+        .language-widget .goog-te-gadget span {
+            display: none;
+        }
+        .language-widget select {
+            border: 0;
+            border-radius: 6px;
+            padding: 6px 8px;
+            color: #3e2a21;
+            background: white;
+            max-width: 170px;
+        }
         
         /* Selector de monedas */
         .moneda-selector { 
@@ -160,9 +211,22 @@
         @media (max-width: 768px) {
             .header-container { flex-direction: column; text-align: center; }
             .header-logo { flex-direction: column; }
+            .language-widget { justify-content: center; }
             .moneda-selector a { margin: 0 8px; font-size: 0.9em; }
             .container { padding: 15px; gap: 15px; }
             .producto { width: 260px; }
+            .floating-cart {
+                left: 12px;
+                bottom: 12px;
+                padding: 10px 14px;
+                font-size: 0.9em;
+            }
+            .whatsapp-btn {
+                right: 12px;
+                bottom: 12px;
+                padding: 10px 14px;
+                font-size: 0.9em;
+            }
         }
 
         .btn-agotado {
@@ -202,13 +266,16 @@
                     <p style="margin: 5px 0 0 0;">Artesanía en cobre de alta calidad - Asunción, Paraguay</p>
                 </div>
             </div>
-            <div>
-                <a href="/ver-carrito/" class="cart-link">
-                    🛒 Carrito (<span id="carrito-count">0</span>)
-                </a>
+            <div class="language-widget" aria-label="Selector de idioma">
+                <strong>Idioma</strong>
+                <div id="google_translate_element"></div>
             </div>
         </div>
     </header>
+
+    <a href="/ver-carrito/" class="floating-cart" aria-label="Ver carrito">
+        🛒 Carrito (<span class="carrito-count">0</span>)
+    </a>
 
 <div class="moneda-selector">
     <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 15px;">
@@ -299,7 +366,6 @@
     <a href="https://wa.me/595991519823" class="whatsapp-btn" target="_blank">💬 WhatsApp</a>
 
     <!-- Google Translate -->
-    <div id="google_translate_element" style="text-align: center; margin: 10px 0;"></div>
 <script>
     function googleTranslateElementInit() {
         new google.translate.TranslateElement({
@@ -336,8 +402,9 @@
         try {
             let response = await fetch('/obtener-carrito/', { credentials: 'same-origin' });
             let data = await response.json();
-            let contadorSpan = document.getElementById('carrito-count');
-            if (contadorSpan) contadorSpan.innerText = data.total_items || 0;
+            document.querySelectorAll('.carrito-count').forEach(contadorSpan => {
+                contadorSpan.innerText = data.total_items || 0;
+            });
         } catch(e) {
             console.error('Error actualizando carrito:', e);
         }
