@@ -1,6 +1,7 @@
 # Archivos ignorados por Git
 # Entorno virtual
 venv/
+.venv/
 env/
 .env
 
@@ -22,6 +23,7 @@ staticfiles/
 # Configuración local
 local_settings.py
 .env
+creditos.txt
 
 # Logs
 *.log

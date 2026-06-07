@@ -1,62 +1,78 @@
-# 🏺 Arkadya Cobre
+# Arkadya Cobre
 
-Sistema de gestión integral para **Arkadya Cobre**, un emprendimiento de artesanía en cobre con base en Asunción, Paraguay.
+Sistema de gestion integral para **Arkadya Cobre**, un emprendimiento de artesania en cobre con base en Asuncion, Paraguay.
 
-## ✨ Características
+## Caracteristicas
 
-- 🛒 **Catálogo de productos** con conversor de monedas (PYG, USD, EUR, ARS, BRL)
-- 🛍️ **Carrito de compras** con validación de stock y checkout por WhatsApp
-- 📊 **Dashboards** (Análisis financiero y métricas de ventas)
-- 📦 **Gestión de stock** automática
-- 💰 **Contabilidad** (ingresos, gastos, costos fijos)
-- 📱 **Formulario móvil** para ventas rápidas desde redes sociales
-- 📝 **Blog** con artículos informativos y lightbox para imágenes
-- 📈 **Exportación a CSV** de todos los datos
-- 🌐 **Desplegado en PythonAnywhere**
+- Catalogo de productos con conversor de monedas (PYG, USD, EUR, ARS, BRL).
+- Carrito de compras con validacion de stock y checkout por WhatsApp.
+- Dashboards con analisis financiero y metricas de ventas.
+- Gestion de stock automatica.
+- Contabilidad: ingresos, gastos y costos fijos.
+- Formulario movil para ventas rapidas desde redes sociales.
+- Blog con articulos informativos y lightbox para imagenes.
+- Exportacion CSV desde el administrador.
+- Deploy previsto en PythonAnywhere.
 
-## 🛠️ Tecnologías utilizadas
+## Tecnologias
 
-- **Backend:** Django 6.0, Python 3.13
-- **Frontend:** HTML5, CSS3, JavaScript (Chart.js)
-- **Base de datos:** SQLite (local) / SQLite3 (producción)
-- **Despliegue:** PythonAnywhere
-- **Control de versiones:** Git + GitHub
+- Python 3.12.
+- Django 6.0.5.
+- SQLite local.
+- HTML, CSS y JavaScript.
 
-## 🚀 Instalación local
+## Instalacion local
 
-```bash
-# Clonar el repositorio
-git clone https://github.com/arkadyacobre/arkadya-cobre.git
-cd arkadya-cobre
+```powershell
+cd C:\Users\seral\Desktop\arkadya-cobre
 
 # Crear entorno virtual
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate     # Windows
+python -m venv .venv
+
+# Activar entorno virtual
+.\.venv\Scripts\Activate.ps1
 
 # Instalar dependencias
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 
-# Migrar base de datos
+# Aplicar migraciones
 python manage.py migrate
 
-# Crear superusuario
-python manage.py createsuperuser
+# Verificar configuracion
+python manage.py check
 
 # Ejecutar servidor
 python manage.py runserver
+```
 
-🌐 Sitio web
+Si PowerShell bloquea la activacion del entorno virtual, tambien se puede ejecutar Python directamente:
+
+```powershell
+.\.venv\Scripts\python.exe manage.py check
+.\.venv\Scripts\python.exe manage.py runserver
+```
+
+## Variables de entorno
+
+En desarrollo hay valores fallback para levantar el proyecto localmente. En produccion se deben definir:
+
+```powershell
+$env:DJANGO_SECRET_KEY="cambiar-por-una-clave-segura"
+$env:TOKEN_VENTA_RAPIDA="cambiar-por-un-token-seguro"
+```
+
+En PythonAnywhere, configurar estas variables en el entorno de la aplicacion antes de reiniciar el sitio.
+
+## Sitio web
+
 https://arkadyacobre.pythonanywhere.com/
 
-📞 Contacto
-📧 Email: arkadya.cobre.py@gmail.com
+## Contacto
 
-📱 WhatsApp: +595 991519823
+- Email: arkadya.cobre.py@gmail.com
+- WhatsApp: +595 991519823
+- Instagram: @arkadyacobre
 
-📸 Instagram: @arkadyacobre
+## Backups
 
-📄 Estado del proyecto
-✅ En producción | 🟡 En constante mejora
-
-Desarrollado con ❤️ para Arkadya Cobre
+El archivo `backup.bat` automatiza copias locales de la base SQLite. Antes de ejecutar cambios de datos o despliegues, generar una copia de `db.sqlite3` y conservarla fuera del repositorio.
